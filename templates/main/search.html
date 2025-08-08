@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Поиск собеседника - MatchMaker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card animate__animated animate__fadeIn">
+            <div class="card-body text-center p-5">
+                <h2 class="mb-4">
+                    <i class="fas fa-search text-primary"></i> 
+                    Найти собеседника
+                </h2>
+                
+                <p class="text-muted mb-4">
+                    Мы подберем для вас собеседника на основе ваших интересов и психологического профиля
+                </p>
+                
+
+                
+                <!-- Кнопка поиска -->
+                <div id="searchContainer">
+                    <button id="searchBtn" class="btn btn-gradient btn-lg pulse-animation" 
+                            onclick="findMatch()">
+                        <i class="fas fa-search"></i> Начать поиск
+                    </button>
+                </div>
+                
+                <!-- Индикатор загрузки (скрыт по умолчанию) -->
+                <div id="loadingContainer" class="d-none">
+                    <div class="spinner-border spinner-border-custom text-primary mb-3" role="status">
+                        <span class="visually-hidden">Поиск...</span>
+                    </div>
+                    <h4>Ищем подходящего собеседника...</h4>
+                    <p class="text-muted">Это может занять несколько секунд</p>
+                </div>
+                
+                <!-- Результат поиска (скрыт по умолчанию) -->
+                <div id="resultContainer" class="d-none">
+                    <!-- Заполняется через JavaScript -->
+                </div>
+                
+                <!-- Статистика -->
+                <div class="mt-5">
+                    <small class="text-muted">
+                        <i class="fas fa-users"></i> 
+                        Сейчас в поиске: <span id="searchingCount">{{ searching_count|default:0 }}</span> человек
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Советы -->
+        <div class="card mt-4 animate__animated animate__fadeInUp">
+            <div class="card-body">
+                <h5><i class="fas fa-lightbulb text-warning"></i> Советы для успешного общения:</h5>
+                <ul class="mb-0">
+                    <li>Будьте вежливы и доброжелательны</li>
+                    <li>Начните с общих интересов</li>
+                    <li>Задавайте открытые вопросы</li>
+                    <li>Уважайте границы собеседника</li>
+                    <li>Получайте удовольствие от общения!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #searchBtn {
+        font-size: 1.2rem;
+        padding: 15px 40px;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    #searchBtn:hover {
+        transform: scale(1.05);
+    }
+    
+    .match-found {
+        animation: bounceIn 0.5s;
+    }
+    
+    @keyframes bounceIn {
+        0% {
+            transform: scale(0.3);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.05);
+        }
+        70% {
+            transform: scale(0.9);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
+
+<script>
+    let isSearching = false;
+    
+    function findMatch() {
+        if (isSearching) return;
+        
+        isSearching = true;
+        
+        // Показываем индикатор загрузки
+        $('#searchContainer').addClass('d-none');
+        $('#loadingContainer').removeClass('d-none');
+        $('#resultContainer').addClass('d-none');
+        
+        // Отправляем запрос на сервер
+        $.ajax({
+            url: '{% url "find_match" %}',
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                $('#loadingContainer').addClass('d-none');
+                
+                if (response.status === 'success') {
+                    // Найден собеседник
+                    showMatchFound(response);
+                } else {
+                    // Собеседник не найден
+                    showNoMatch(response.message);
+                }
+            },
+            error: function() {
+                $('#loadingContainer').addClass('d-none');
+                showError();
+            },
+            complete: function() {
+                isSearching = false;
+            }
+        });
+    }
+    
+    function showMatchFound(data) {
+        const html = `
+            <div class="match-found">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="text-success">Собеседник найден!</h3>
+                <p class="mb-3">
+                    <strong>${data.match_username}</strong> ждет вас в чате
+                </p>
+                <div class="mb-4">
+                    <small class="text-muted">Общие интересы:</small><br>
+                    ${data.match_interests.map(interest => 
+                        `<span class="badge bg-primary me-1">${interest}</span>`
+                    ).join('')}
+                </div>
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="/user/${data.user_id}/" class="btn btn-gradient btn-lg">
+                        <i class="fas fa-user"></i> Профиль на сайте
+                    </a>
+                    ${data.match_social_url ? `<a href="${data.match_social_url}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-lg"><i class="fab fa-vk"></i> Соцсеть</a>` : ''}
+                </div>
+            </div>
+        `;
+        
+        $('#resultContainer').html(html).removeClass('d-none');
+    }
+    
+    function showNoMatch(message) {
+        const html = `
+            <div>
+                <div class="mb-4">
+                    <i class="fas fa-hourglass-half text-warning" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-warning">Подходящий собеседник не найден</h4>
+                <p class="text-muted mb-4">${message}</p>
+                <button class="btn btn-gradient" onclick="resetSearch()">
+                    <i class="fas fa-redo"></i> Попробовать снова
+                </button>
+            </div>
+        `;
+        
+        $('#resultContainer').html(html).removeClass('d-none');
+    }
+    
+    function showError() {
+        const html = `
+            <div>
+                <div class="mb-4">
+                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-danger">Произошла ошибка</h4>
+                <p class="text-muted mb-4">Пожалуйста, попробуйте позже</p>
+                <button class="btn btn-gradient" onclick="resetSearch()">
+                    <i class="fas fa-redo"></i> Попробовать снова
+                </button>
+            </div>
+        `;
+        
+        $('#resultContainer').html(html).removeClass('d-none');
+    }
+    
+    function resetSearch() {
+        $('#searchContainer').removeClass('d-none');
+        $('#resultContainer').addClass('d-none');
+    }
+    
+    // Обновление счетчика пользователей в поиске
+    function updateSearchingCount() {
+        $.get('/api/searching-count/', function(data) {
+            $('#searchingCount').text(data.count);
+        });
+    }
+    
+    // Обновляем счетчик каждые 10 секунд
+    setInterval(updateSearchingCount, 10000);
+</script>
+{% endblock %}

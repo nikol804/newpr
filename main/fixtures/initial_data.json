@@ -1,0 +1,122 @@
+[
+    {
+        "model": "main.interest",
+        "pk": 1,
+        "fields": {
+            "name": "Музыка",
+            "icon": "fa-music"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 2,
+        "fields": {
+            "name": "Спорт",
+            "icon": "fa-running"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 3,
+        "fields": {
+            "name": "IT и технологии",
+            "icon": "fa-laptop-code"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 4,
+        "fields": {
+            "name": "Путешествия",
+            "icon": "fa-plane"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 5,
+        "fields": {
+            "name": "Кино",
+            "icon": "fa-film"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 6,
+        "fields": {
+            "name": "Книги",
+            "icon": "fa-book"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 7,
+        "fields": {
+            "name": "Игры",
+            "icon": "fa-gamepad"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 8,
+        "fields": {
+            "name": "Кулинария",
+            "icon": "fa-utensils"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 9,
+        "fields": {
+            "name": "Искусство",
+            "icon": "fa-palette"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 10,
+        "fields": {
+            "name": "Фотография",
+            "icon": "fa-camera"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 11,
+        "fields": {
+            "name": "Наука",
+            "icon": "fa-microscope"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 12,
+        "fields": {
+            "name": "Психология",
+            "icon": "fa-brain"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 13,
+        "fields": {
+            "name": "Бизнес",
+            "icon": "fa-briefcase"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 14,
+        "fields": {
+            "name": "Животные",
+            "icon": "fa-paw"
+        }
+    },
+    {
+        "model": "main.interest",
+        "pk": 15,
+        "fields": {
+            "name": "Природа",
+            "icon": "fa-tree"
+        }
+    }
+]
