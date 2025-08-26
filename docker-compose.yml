@@ -1,61 +1,55 @@
-version: '3.8'
-
+version: '3.9'
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: matchmaker_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-    networks:
-      - matchmaker_network
-
   web:
     build: .
-    container_name: matchmaker_web
-    ports:
-      - "8000:8000"
+    container_name: coolify_web
+    command: daphne -b 0.0.0.0 -p 8000 matchmaker.asgi:application
     volumes:
       - .:/app
-      - static_volume:/app/static
-      - media_volume:/app/media
+    ports:
+      - "8000:8000"
     depends_on:
-      - redis
+      - db
     environment:
-      - DEBUG=1
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DJANGO_SETTINGS_MODULE=matchmaker.settings
+    env_file:
+      - .env
     networks:
-      - matchmaker_network
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             python manage.py loaddata main/fixtures/initial_data.json &&
-             daphne -b 0.0.0.0 -p 8000 matchmaker.asgi:application"
+      - appnet
 
-  # Nginx для production (опционально)
+  db:
+    image: postgres:16
+    container_name: coolify_db
+    restart: always
+    environment:
+      POSTGRES_DB: coolifydb
+      POSTGRES_USER: coolifyuser
+      POSTGRES_PASSWORD: coolifypassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - appnet
+
   nginx:
-    image: nginx:alpine
-    container_name: matchmaker_nginx
+    image: nginx:1.25
+    container_name: coolify_nginx
     ports:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - static_volume:/static:ro
-      - media_volume:/media:ro
-    depends_on:
-      - web
     networks:
-      - matchmaker_network
-    profiles:
-      - production
-
-volumes:
-  redis_data:
-  static_volume:
-  media_volume:
+      - appnet
 
 networks:
-  matchmaker_network:
+  appnet:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+
